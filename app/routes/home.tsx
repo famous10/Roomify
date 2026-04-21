@@ -1,7 +1,11 @@
 import type { Route } from "./+types/home";
+import { useNavigate } from "react-router";
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Button from "~/components/Button";
+import Upload from "~/components/Upload";
 import { Layers } from "lucide-react";
+import { saveFloorPlan } from "~/libs/puter.action";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,6 +15,26 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleUploadComplete = async (base64: string) => {
+    console.log("Upload complete, saving to Puter...");
+    setSaving(true);
+    setError(null);
+    try {
+      const id = Date.now().toString();
+      await saveFloorPlan(base64, id);
+      console.log("Redirecting to visualizer:", id);
+      navigate(`/visualizer/${id}`);
+    } catch (err) {
+      console.error("Failed to save to Puter:", err);
+      setError("Failed to save your file. Please try again.");
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="home">
       <Navbar />
@@ -47,6 +71,14 @@ export default function Home() {
               </div>
               <h3>Upload your floor plan</h3>
               <p>Supports JPG, PNG formats up to 10MB</p>
+              {error && (
+                <p className="text-red-500 text-xs mt-2">{error}</p>
+              )}
+              {saving ? (
+                <div className="text-sm text-zinc-500 mt-4">Saving to Puter...</div>
+              ) : (
+                <Upload onComplete={handleUploadComplete} />
+              )}
             </div>
           </div>
         </div>
@@ -67,7 +99,6 @@ export default function Home() {
                 <img
                   src="https://roomify-mlhuk267-dfwu1i.puter.site/projects/1770803585402/rendered.png"
                   alt="Floor plan project"
-                  
                 />
               </div>
             </div>

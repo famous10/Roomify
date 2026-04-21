@@ -23,8 +23,14 @@ export interface PuterAuth {
   getUser: () => Promise<User>;
 }
 
+export interface PuterFS {
+  write: (path: string, data: string | Blob, options?: { overwrite?: boolean }) => Promise<{ id: string; name: string; path: string }>;
+  mkdir: (path: string, options?: { parents?: boolean }) => Promise<void>;
+}
+
 export interface PuterInstance {
   auth: PuterAuth;
+  fs: PuterFS;
 }
 
 declare global {
